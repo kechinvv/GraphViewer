@@ -17,7 +17,6 @@
     <script src="/client/ace/src/mode-c_cpp.js" type="text/javascript" charset="utf-8"></script>
     <script src="/client/ace/src/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" referrerpolicy="no-referrer"></script>
-
 </head>
 
 <body>
@@ -29,9 +28,9 @@
             <h1>ModelViewer</h1>
             <nav class="header_menu">
                 <div href="" class="menu_link" onclick="save()" id="save_button">Save</div>
-                <div href="" class="menu_link" onclick="load()" id="load_button">Load</div>
-                <a href="https://oauth.vk.com/oauth/authorize?client_id=8212749&display=page&redirect_uri=http://localhost:8000/vk&response_type=code&v=5.131"
-                class="menu_link" id="login_button">Login</a>
+                <div href="" class="menu_link" onclick="toggle_load_panel()" id="load_button">Load</div>
+                <a href="https://oauth.vk.com/oauth/authorize?client_id=8213455&display=page&redirect_uri=http://localhost:8000/vk&response_type=code&v=5.131"
+                class="menu_link" id="login_button">Log In</a>
                 <div href="" class="menu_link" id="logout_button" onclick="log_out()">Log Out</div>
             </nav>
         </header>
@@ -40,7 +39,7 @@
                 <h4 class="resizer_label" id="code_resizer_label">Code</h4>
             </div>
             <div class="content_wrapper" id="code_wrapper">
-                <div class="content_container">
+                <div id='code_container' class="content_container">
                     <header class="content_container_header">
                         Code
                         <div>
@@ -60,6 +59,8 @@
                     </header>
                     <div id="code"></div>
                 </div>
+                <div id="console_gutter" ondblclick="toggle_console_log()">Compilation Logs</div>
+                <div id="console_content"></div>
             </div>
             <div class="resizer" id="graph_resizer" ondblclick="toggle_expand_mode('graph')">
                 <h4 class="resizer_label" id="graph_resizer_label">Graph</h4>
@@ -78,30 +79,30 @@
                         </div>
                     </header>
                     <div id="graph">
-                        <div id="message_panel" onclick="this.style.setProperty('display', 'none')"></div>
                         <div id="loading_panel">
                             <img class="loading_icon blinking" src="/client/images/icons8-sand-timer-96_dark.svg"/>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
-
-    </div>
-    <div id="load_code_panel">
-        <div class="select_body" state='hidden' id="load_box"
-                     onclick="toggle_select(this)">
-                    <div class="select_header">
-                        <span class="select_current"></span>
-                        <img class="select_dropdown_icon" src="/client/images/down-arrow.svg"/>
-                    </div>
-                    <ul class="select_content"></ul>
+        <div id="load_code_panel">
+            <div id="load_code_panel_header">
+                <div id="panel_load_button" onclick="load_selected_example()">
+                    Load
+                </div>
+                <div id="panel_delete_button" onclick="delete_selected_example()">
+                    Delete
+                </div>
+            </div>
+            <div class="select_body" state='shown' id="load_box">
+                        <div class="select_header">
+                            <span class="select_current"></span>
+                        </div>
+                        <ul class="select_content"></ul>
+            </div>
         </div>
     </div>
     <script src="/client/scripts/script.js"></script>
-
 </body>
 </html>
-
-
