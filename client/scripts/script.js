@@ -70,6 +70,7 @@ function update_graph() {
     let query = `${window.location}view_graph?code=${code_text}&lang=${language}&model=${graph_type}`
     let message_panel = document.getElementById("console_content");
     let loading_panel = document.getElementById("loading_panel");
+    let console_content = document.getElementById("console_content");
     clearTimeout(delayTimer);
     if (raw_text.trim().length !== 0)
         delayTimer = setTimeout(async function () {
@@ -81,6 +82,7 @@ function update_graph() {
                 let j = await res.json();
                 message_panel.textContent = j.detail
             } else {
+                console_content.textContent = "";
                 let js = await res.text();
                 console.log(js);
                 d3.select("#graph").graphviz().renderDot(js);
@@ -289,7 +291,7 @@ async function save() {
     if (description.length > 0) {
         let code_box = document.getElementById('code_box');
         var language = get_current(code_box);
-        let query = `${window.location}code?language=${language}&code=${encodeURI(editor.getValue())}&description=${encodeURI(description)}`;
+        let query = `${window.location}code?language=${language}&code=${encodeURIComponent(editor.getValue())}&description=${encodeURIComponent(description)}`;
         let res = await fetch(query, {method: 'POST'});
     } else {
         alert("Description should not be empty")
@@ -300,12 +302,9 @@ async function save() {
 
 async function load() {
     let query = `${window.location}user_code`;
-    await fetch(query)
-        .then((response) => response.json())
-        .then((users_content) => {
-            load_result = users_content;
-    });
-    update_load_select(load_box, load_result);
+    let res = await fetch(query)
+    let data = await res.json()
+    update_load_select(load_box, data);
 }
 
 async function load_selected_example() {
@@ -329,11 +328,11 @@ async function delete_selected_example() {
 let load_panel_is_shown= false;
 let load_panel = document.getElementById('load_code_panel');
 
-function toggle_load_panel() {
+async function toggle_load_panel() {
     if (load_panel_is_shown) {
         load_panel.style.setProperty('display', 'none');
     } else {
-        load()
+        await load()
         load_panel.style.setProperty('display', 'flex');
     }
     load_panel_is_shown = !load_panel_is_shown;
