@@ -1,6 +1,5 @@
 import ast
 import numbers
-import re
 from uuid import uuid4 as uuid
 
 import graphviz as gv
@@ -102,8 +101,6 @@ def fn_ddgs(code):
     return ddgs
 
 
-
-
 class GraphRenderer:
     """
     this class is capable of rendering data structures consisting of
@@ -185,31 +182,11 @@ class GraphRenderer:
         return graph
 
 
-##if __name__ == '__main__':
-##    code = open("C:/Users/n_zgr/OneDrive/Рабочий стол/py-data-dependency-graph-master/snippets/sample_1.py").read()
-##    print(code)
-##    decls, graph = code2ddg.get_deps(code)
-##    print("var: line_number map =>")
-##    print(decls)
-##
-##    print("variable data dependence =>")
-##    print(graph)
-##
-##    renderer = GraphRenderer()
-##    graph = renderer.render(graph, label=None)
-##    graph.format = 'dot'
-##    return graph.pipe()
-
-
 def make(code: str):
     decls, graph = get_deps(code)
     renderer = GraphRenderer()
     graph = renderer.render(graph, label=None)
     graph.format = 'dot'
+
     return graph.pipe()
-
-
-if __name__ == '__main__':
-    code = open("C:/Users/n_zgr/OneDrive/Рабочий стол/py-data-dependency-graph-master/snippets/sample_1.py").read()
-    make(code)
 
