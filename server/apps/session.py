@@ -1,11 +1,11 @@
 from fastapi import HTTPException
 from uuid import UUID
-from vk import AccountInfo
 
 from fastapi_sessions.backends.implementations import InMemoryBackend
 from fastapi_sessions.session_verifier import SessionVerifier
 from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
 
+from server.apps.vk import AccountInfo
 
 cookie_params = CookieParameters()
 
@@ -22,12 +22,12 @@ backend = InMemoryBackend[UUID, AccountInfo]()
 
 class BasicVerifier(SessionVerifier[UUID, AccountInfo]):
     def __init__(
-        self,
-        *,
-        identifier: str,
-        auto_error: bool,
-        backend: InMemoryBackend[UUID, AccountInfo],
-        auth_http_exception: HTTPException,
+            self,
+            *,
+            identifier: str,
+            auto_error: bool,
+            backend: InMemoryBackend[UUID, AccountInfo],
+            auth_http_exception: HTTPException,
     ):
         self._identifier = identifier
         self._auto_error = auto_error
