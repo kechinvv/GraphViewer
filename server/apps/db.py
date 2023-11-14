@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-from models import Base
+from server.apps.models import Base
 
 print(os.getenv('db_conn'))
 engine = create_engine(os.getenv('db_conn'), echo=True)
