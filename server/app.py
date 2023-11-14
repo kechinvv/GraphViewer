@@ -11,12 +11,12 @@ from typing import List
 from starlette.middleware.sessions import SessionMiddleware
 from authlib.integrations.starlette_client import OAuth, OAuthError
 
-from server.apps.GoogleAccInfo import GoogleAccInfo
-from vk import get_account_info, get_access_token, AccountInfo
-from session import backend, cookie, verifier
-from models import Code
-from db import get_db
-from schemas import ShortCodeDescription
+from server.apps.schemas.GoogleAccInfo import GoogleAccInfo
+from server.apps.schemas.ShortCodeDescription import ShortCodeDescription
+from server.apps.vk import AccountInfo
+from server.apps.session import backend, cookie, verifier
+from server.apps.models import Code
+from server.apps.db import get_db
 
 from python.handler import handler as py_handler
 from kotlin.handler import handler as kt_handler
@@ -88,21 +88,6 @@ async def auth(request: Request):
         await backend.create(session, GoogleAccInfo(**user))
         cookie.attach_to_response(response, session)
     return response
-
-
-# @app.get("/vk", tags=['User'])
-# async def vk(code: str):
-#     code = get_access_token(code)
-#     if code is None:
-#         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail='Error')
-#     user = get_account_info(code)
-#
-#     session = uuid4()
-#
-#     await backend.create(session, user)
-#     res = RedirectResponse('/')
-#     cookie.attach_to_response(res, session)
-#     return res
 
 
 @app.get("/whoami", dependencies=[Depends(cookie)], tags=['User'])
@@ -181,3 +166,17 @@ async def view_graph(code: str = example_code, lang: str = "python", model: str 
 
 if __name__ == '__main__':
     uvicorn.run('app:app', host='0.0.0.0', port=8000, reload=True, debug=True)
+
+# @app.get("/vk", tags=['User'])
+# async def vk(code: str):
+#     code = get_access_token(code)
+#     if code is None:
+#         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail='Error')
+#     user = get_account_info(code)
+#
+#     session = uuid4()
+#
+#     await backend.create(session, user)
+#     res = RedirectResponse('/')
+#     cookie.attach_to_response(res, session)
+#     return res

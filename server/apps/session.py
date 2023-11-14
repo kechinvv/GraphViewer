@@ -1,10 +1,11 @@
 from fastapi import HTTPException
 from uuid import UUID
-from vk import AccountInfo
 
 from fastapi_sessions.backends.implementations import InMemoryBackend
 from fastapi_sessions.session_verifier import SessionVerifier
 from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
+
+from server.apps.vk import AccountInfo
 
 cookie_params = CookieParameters()
 

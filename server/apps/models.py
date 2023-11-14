@@ -13,4 +13,4 @@ class Code(Base):
     email = Column(String, nullable=False)
 
     def __repr__(self):
-        return "<Code(%d, '%s', '%s','%s', %d)>" % (self.id, self.description, self.language, self.code, self.user_id)
+        return "<Code(%d, '%s', '%s','%s', %s)>" % (self.id, self.description, self.language, self.code, self.email)
