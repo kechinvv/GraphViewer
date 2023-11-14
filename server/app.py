@@ -6,6 +6,8 @@ from uuid import uuid4, UUID
 from sqlalchemy.orm import Session
 from typing import List
 
+from server.dot_to_json.converter import convert_dot_to_json
+from server.dot_to_json.request import GetGraphRequest
 from vk import get_account_info, get_access_token, AccountInfo
 from session import backend, cookie, verifier
 from models import Code
@@ -123,6 +125,24 @@ async def view_graph(code: str = example_code, lang: str = "python", model: str 
         try:
             data = handlers.get(lang)(code, model)
             return Response(data, media_type=f"text/dot")
+        except SyntaxError as e:
+            raise HTTPException(400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(400, detail=str(e))
+    else:
+        raise HTTPException(400, "Language and model not implemented")
+
+
+@app.post('/v2/view_graph')
+async def view_graph(request: GetGraphRequest):
+    code = request.code
+    lang = request.lang
+    model = request.model
+    if lang in functions and model in functions[lang]:
+        try:
+            data = handlers.get(lang)(code, model)
+            response = convert_dot_to_json(data, lang)
+            return Response(response, media_type=f"application/json")
         except SyntaxError as e:
             raise HTTPException(400, detail=str(e))
         except Exception as e:
