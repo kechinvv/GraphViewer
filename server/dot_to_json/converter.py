@@ -4,6 +4,7 @@ import pydot
 import json
 import queue
 
+
 class Node:
     def __init__(self, id, label, shape):
         self.id = id
@@ -88,7 +89,7 @@ def convert_dot_to_json(dot_graph, lang):
             nodes = nodes + subgraph_nodes
         return nodes
 
-    def dot_graph_to_graph(graph):
+    def dot_graph_to_graph(graph) -> Graph:
         #nodes_with_edges = set()
         edges = []
         name = graph.get_name()
@@ -136,7 +137,4 @@ def convert_dot_to_json(dot_graph, lang):
 
         return response_graph
 
-    def graph_to_json(graph):
-        return GraphEncoder().encode(graph)
-
-    return graph_to_json(dot_graph_to_graph(dot_to_graph(dot_graph)))
+    return dot_graph_to_graph(dot_to_graph(dot_graph))
