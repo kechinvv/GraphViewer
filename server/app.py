@@ -160,7 +160,7 @@ def view_graph(code: str = example_code, lang: str = "python", model: str = "ast
 
 
 @app.post('/v2/view_graph')
-async def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
+def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
     model_builder = get_model_builder(request.lang, request.model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
