@@ -30,7 +30,7 @@ python ./app.py
 ```
 ## Запуск через virtualenv
 ```bash
-pip install virualenv
+pip install virtualenv
 virtualenv venv # создание среды
 ./venv/Scripts/activate.bat # windows
 source venv/bin/activate # mac, linux
