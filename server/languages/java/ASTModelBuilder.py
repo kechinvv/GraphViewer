@@ -10,7 +10,7 @@ from ..ModelBuilder import ModelBuilder
 
 
 class ASTModelBuilder(ModelBuilder):
-    
+
     def build(self, code: str) -> str:
         inp_stream = InputStream(code)
         lexer = Java8Lexer(inp_stream)
@@ -30,7 +30,7 @@ class ASTModelBuilder(ModelBuilder):
         if res == "digraph g {" or res == "digraph g {\n}":
             raise RuntimeError('Something wrong')
         return res
-    
+
 
 def replace(regex, string, replacement):
     reg = re.compile(regex)

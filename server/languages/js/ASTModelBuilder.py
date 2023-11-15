@@ -7,7 +7,7 @@ from ..ModelBuilder import ModelBuilder
 
 
 class ASTModelBuilder(ModelBuilder):
-    
+
     def build(self, code: str) -> str:
         with tempfile.TemporaryDirectory() as dir:
             name = Path(dir) / 'code.js'

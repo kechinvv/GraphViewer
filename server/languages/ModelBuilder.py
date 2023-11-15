@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ModelBuilder:
     def build(self, code: str) -> str:
         pass

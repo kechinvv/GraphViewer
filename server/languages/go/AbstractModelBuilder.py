@@ -9,6 +9,7 @@ from docker.errors import ContainerError
 
 from ..ModelBuilder import ModelBuilder, Model
 
+
 class _AbstractModelBuilder(ModelBuilder):
     def __init__(self, model: Model) -> None:
         super().__init__()
@@ -16,7 +17,7 @@ class _AbstractModelBuilder(ModelBuilder):
 
     def build(self, code: str) -> str:
         # Клиент докера для создания контейнеров
-        #client = docker.from_env()
+        # client = docker.from_env()
         # Создаю временную папку, которая удалится после выполнения функции
         with tempfile.TemporaryDirectory() as dir:
             # print(dir)
