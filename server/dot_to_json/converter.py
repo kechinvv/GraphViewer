@@ -1,3 +1,5 @@
+from copy import copy
+
 import pydot
 import json
 import queue
@@ -79,6 +81,12 @@ def convert_dot_to_json(dot_graph, lang):
 
         return counter
 
+    def get_nodes(graph):
+        nodes = copy(graph.nodes)
+        for subgraph in graph.subgraphs:
+            subgraph_nodes = get_nodes(subgraph)
+            nodes = nodes + subgraph_nodes
+        return nodes
 
     def dot_graph_to_graph(graph):
         #nodes_with_edges = set()
@@ -109,8 +117,15 @@ def convert_dot_to_json(dot_graph, lang):
             node = Node(id, label, shape)
             nodes.append(node)
 
+        subgraphs = []
+        for dot_subgraph in graph.get_subgraphs():
+            subgraph = dot_graph_to_graph(dot_subgraph)
+            subgraphs.append(subgraph)
+
+        response_graph = Graph(name, nodes, edges, subgraphs)
+
         nodes_dict = {}
-        for node in nodes:
+        for node in get_nodes(response_graph):
             nodes_dict[node.id] = node
         counter = 1
         for node in nodes:
@@ -119,12 +134,7 @@ def convert_dot_to_json(dot_graph, lang):
 
             counter = bfs(node, edges, counter, nodes_dict)
 
-        subgraphs = []
-        for dot_subgraph in graph.get_subgraphs():
-            subgraph = dot_graph_to_graph(dot_subgraph)
-            subgraphs.append(subgraph)
-
-        return Graph(name, nodes, edges, subgraphs)
+        return response_graph
 
     def graph_to_json(graph):
         return GraphEncoder().encode(graph)
