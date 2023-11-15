@@ -11,29 +11,21 @@ from typing import List
 from starlette.middleware.sessions import SessionMiddleware
 from authlib.integrations.starlette_client import OAuth, OAuthError
 
-from server.apps.schemas.GoogleAccInfo import GoogleAccInfo
-from server.apps.schemas.ShortCodeDescription import ShortCodeDescription
-from server.dot_to_json.converter import convert_dot_to_json
-from server.dot_to_json.request import GetGraphRequest
-from server.apps.vk import AccountInfo
-from server.apps.session import backend, cookie, verifier
-from server.apps.models import Code
-from server.apps.db import get_db
+from apps.schemas.GoogleAccInfo import GoogleAccInfo
+from apps.schemas.ShortCodeDescription import ShortCodeDescription
+from dot_to_json.converter import convert_dot_to_json
+from dot_to_json.request import GetGraphRequest
+from apps.vk import AccountInfo
+from apps.session import backend, cookie, verifier
+from apps.models import Code
+from apps.db import get_db
 
-from python.handler import handler as py_handler
-from kotlin.handler import handler as kt_handler
-from c.handler import handler as c_handler
-from go.handler import handler as go_handler
-from java.handler import handler as java_handler
-from javascript.handler import handler as js_handler
+from languages.model_builders import *
 
 client_id = os.environ['client_id']
 client_secret = os.environ['client_secret']
 
-functions = {'python': ('ast', 'cfg'), 'kotlin': ('ast', 'cfg'), 'c': ('ast', 'cfg', 'ssa'), 'go': ('ast', 'cfg'),
-             'java': ('ast', 'cfg'), 'js': ('ast', 'cfg')}
-handlers = {"python": py_handler, "kotlin": kt_handler, "c": c_handler, 'go': go_handler, 'java': java_handler,
-            'js': js_handler}
+functions = {lang.value: list(map(lambda k: k.value, models.keys())) for lang, models in model_builders.items()}
 
 example_code = """
 a = 2 + 2 * (c * d / 2)
@@ -154,34 +146,34 @@ async def all_functions():
 
 @app.get('/view_graph')
 async def view_graph(code: str = example_code, lang: str = "python", model: str = "ast"):
-    if lang in functions and model in functions[lang]:
-        try:
-            data = handlers.get(lang)(code, model)
-            return Response(data, media_type=f"text/dot")
-        except SyntaxError as e:
-            raise HTTPException(400, detail=str(e))
-        except Exception as e:
-            raise HTTPException(400, detail=str(e))
-    else:
+    model_builder = get_model_builder(lang, model)
+    if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
+    
+    try:
+        data = model_builder.build(code)
+        return Response(data, media_type=f"text/dot")
+    except SyntaxError as e:
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(400, detail=str(e))
 
 
 @app.post('/v2/view_graph')
 async def view_graph(request: GetGraphRequest):
-    code = request.code
-    lang = request.lang
-    model = request.model
-    if lang in functions and model in functions[lang]:
-        try:
-            data = handlers.get(lang)(code, model)
-            response = convert_dot_to_json(data, lang)
-            return Response(response, media_type=f"application/json")
-        except SyntaxError as e:
-            raise HTTPException(400, detail=str(e))
-        except Exception as e:
-            raise HTTPException(400, detail=str(e))
-    else:
+    model_builder = get_model_builder(request.lang, request.model)
+    if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
+    
+    try:
+        data = model_builder.build(request.code)
+        response = convert_dot_to_json(data, request.lang)
+        return Response(response, media_type=f"application/json")
+    except SyntaxError as e:
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(400, detail=str(e))
+
 
 
 if __name__ == '__main__':

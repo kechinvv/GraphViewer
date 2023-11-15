@@ -5,15 +5,19 @@ from uuid import uuid4 as uuid
 
 import graphviz as gv
 
+from ..ModelBuilder import ModelBuilder
 
-def make(code: str):
-    code_ast = ast.parse(code)
-    transformed_ast = _transform_ast(code_ast)
 
-    renderer = GraphRenderer()
-    graph = renderer.render(transformed_ast, label=None)
-    graph.format = 'dot'
-    return graph.pipe()
+class ASTModelBuilder(ModelBuilder):
+    
+    def build(self, code: str) -> str:
+        code_ast = ast.parse(code)
+        transformed_ast = _transform_ast(code_ast)
+
+        renderer = _GraphRenderer()
+        graph = renderer.render(transformed_ast, label=None)
+        graph.format = 'dot'
+        return graph.pipe().decode('utf-8')
 
 
 def _transform_ast(code_ast):
@@ -31,7 +35,7 @@ def to_camelcase(string):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
 
-class GraphRenderer:
+class _GraphRenderer:
     """
     this class is capable of rendering data structures consisting of
     dicts and lists as a graph using graphviz
