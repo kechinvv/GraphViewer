@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Response, status, Depends
@@ -144,8 +145,8 @@ async def all_functions():
     return functions
 
 
-@app.get('/view_graph')
-async def view_graph(code: str = example_code, lang: str = "python", model: str = "ast"):
+@app.get('/view_graph1')
+async def view_graph1(code: str = example_code, lang: str = "python", model: str = "ast"):
     model_builder = get_model_builder(lang, model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
@@ -174,6 +175,25 @@ async def view_graph(request: GetGraphRequest):
     except Exception as e:
         raise HTTPException(400, detail=str(e))
 
+
+@app.get('/view_graph')
+async def view_graph(code: str = example_code, lang: str = "python", model: str = "ast"):
+    model_builder = get_model_builder(lang, model)
+    if model_builder is None:
+        raise HTTPException(400, "Language and model not implemented")
+
+    try:
+        data = model_builder.build(code)
+        response = convert_dot_to_json(data, lang)
+        return Response(response, media_type=f"application/json")
+    except SyntaxError as e:
+        tb = traceback.format_exc()
+        print(tb)
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)
+        raise HTTPException(400, detail=str(e))
 
 
 if __name__ == '__main__':

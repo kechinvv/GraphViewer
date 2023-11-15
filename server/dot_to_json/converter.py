@@ -1,6 +1,10 @@
+from io import BytesIO
+from xml.dom import minidom
+
 import pydot
 import json
 import queue
+
 
 class Node:
     def __init__(self, id, label, shape):
@@ -8,6 +12,14 @@ class Node:
         self.label = label
         self.shape = shape
         self.lvl = -1
+        self.x = 0.0
+        self.y = 0.0
+
+    def set_x(self, x):
+        self.x = x
+
+    def set_y(self, y):
+        self.y = y
 
     def set_lvl(self, lvl):
         self.lvl = lvl
@@ -79,9 +91,34 @@ def convert_dot_to_json(dot_graph, lang):
 
         return counter
 
+    def get_text_from_tag(nodelist):
+        rc = []
+        for node in nodelist:
+            if node.nodeType == node.TEXT_NODE:
+                rc.append(node.data)
+        return ''.join(rc)
 
-    def dot_graph_to_graph(graph):
-        #nodes_with_edges = set()
+    def add_positions(graph, nodes, doc):
+        node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
+        for p in doc.getElementsByTagName("g"):
+            if "node" == p.getAttribute('class').lower():
+                title = get_text_from_tag(p.getElementsByTagName('title')[0].childNodes)
+                if title not in node_mapping.keys():
+                    continue
+                for c_text in p.getElementsByTagName('text'):
+                    node_mapping[title].x = float(c_text.getAttribute('x'))
+                    node_mapping[title].y = float(c_text.getAttribute('y'))
+                    break
+
+        doc.unlink()
+
+    def dot_graph_to_graph(graph, doc=None):
+
+        if doc is None:
+            svg_io = BytesIO(graph.create_svg())
+            graph.write_svg("./test.svg")
+            doc = minidom.parse(svg_io)
+        # nodes_with_edges = set()
         edges = []
         name = graph.get_name()
         for dot_edge in graph.get_edges():
@@ -92,15 +129,14 @@ def convert_dot_to_json(dot_graph, lang):
             edge = Edge(source, destination, style)
             edges.append(edge)
 
-            #nodes_with_edges.add(edge.source)
-            #nodes_with_edges.add(edge.destination)
-
+            # nodes_with_edges.add(edge.source)
+            # nodes_with_edges.add(edge.destination)
 
         nodes = []
         for dot_node in graph.get_nodes():
             id = dot_node.get_name()
 
-            #if id not in nodes_with_edges:
+            # if id not in nodes_with_edges:
             #    continue
 
             label = dot_node.get_attributes().get("label", LABEL_DEFAULT_VALUE)
@@ -117,11 +153,13 @@ def convert_dot_to_json(dot_graph, lang):
             if node.lvl != -1:
                 continue
 
-            counter = bfs(node, edges, counter, nodes_dict)
+            # counter = bfs(node, edges, counter, nodes_dict)
+
+        add_positions(graph, nodes, doc)
 
         subgraphs = []
         for dot_subgraph in graph.get_subgraphs():
-            subgraph = dot_graph_to_graph(dot_subgraph)
+            subgraph = dot_graph_to_graph(dot_subgraph, doc)
             subgraphs.append(subgraph)
 
         return Graph(name, nodes, edges, subgraphs)
