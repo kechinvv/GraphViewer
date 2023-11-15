@@ -1,5 +1,6 @@
 from io import BytesIO
 from xml.dom import minidom
+from copy import copy
 
 import pydot
 import json
@@ -98,6 +99,13 @@ def convert_dot_to_json(dot_graph, lang):
                 rc.append(node.data)
         return ''.join(rc)
 
+    def get_nodes(graph):
+        nodes = copy(graph.nodes)
+        for subgraph in graph.subgraphs:
+            subgraph_nodes = get_nodes(subgraph)
+            nodes = nodes + subgraph_nodes
+        return nodes
+
     def add_positions(graph, nodes, doc):
         node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
         for p in doc.getElementsByTagName("g"):
@@ -113,11 +121,11 @@ def convert_dot_to_json(dot_graph, lang):
         doc.unlink()
 
     def dot_graph_to_graph(graph, doc=None):
-
+        cur_doc = doc
         if doc is None:
             svg_io = BytesIO(graph.create_svg())
             graph.write_svg("./test.svg")
-            doc = minidom.parse(svg_io)
+            cur_doc = minidom.parse(svg_io)
         # nodes_with_edges = set()
         edges = []
         name = graph.get_name()
@@ -145,24 +153,26 @@ def convert_dot_to_json(dot_graph, lang):
             node = Node(id, label, shape)
             nodes.append(node)
 
+        add_positions(graph, nodes, cur_doc)
+
+        subgraphs = []
+        for dot_subgraph in graph.get_subgraphs():
+            subgraph = dot_graph_to_graph(dot_subgraph, cur_doc)
+            subgraphs.append(subgraph)
+
+        response_graph = Graph(name, nodes, edges, subgraphs)
+
         nodes_dict = {}
-        for node in nodes:
+        for node in get_nodes(response_graph):
             nodes_dict[node.id] = node
         counter = 1
         for node in nodes:
             if node.lvl != -1:
                 continue
 
-            # counter = bfs(node, edges, counter, nodes_dict)
+            counter = bfs(node, edges, counter, nodes_dict)
 
-        add_positions(graph, nodes, doc)
-
-        subgraphs = []
-        for dot_subgraph in graph.get_subgraphs():
-            subgraph = dot_graph_to_graph(dot_subgraph, doc)
-            subgraphs.append(subgraph)
-
-        return Graph(name, nodes, edges, subgraphs)
+        return response_graph
 
     def graph_to_json(graph):
         return GraphEncoder().encode(graph)

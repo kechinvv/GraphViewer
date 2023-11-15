@@ -150,7 +150,7 @@ async def view_graph1(code: str = example_code, lang: str = "python", model: str
     model_builder = get_model_builder(lang, model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
-    
+
     try:
         data = model_builder.build(code)
         return Response(data, media_type=f"text/dot")
@@ -165,7 +165,7 @@ async def view_graph(request: GetGraphRequest):
     model_builder = get_model_builder(request.lang, request.model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
-    
+
     try:
         data = model_builder.build(request.code)
         response = convert_dot_to_json(data, request.lang)
