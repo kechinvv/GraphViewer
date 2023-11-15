@@ -55,7 +55,7 @@ oauth.register(
 
 
 @app.get("/")
-async def root(request: Request):
+def root(request: Request):
     return FileResponse('../client/views/index.html')
 
 
@@ -85,7 +85,7 @@ async def auth(request: Request):
 
 
 @app.get("/whoami", dependencies=[Depends(cookie)], tags=['User'])
-async def whoami(session_data: AccountInfo = Depends(verifier)):
+def whoami(session_data: AccountInfo = Depends(verifier)):
     """VK user info - id & username"""
     return session_data
 
@@ -98,7 +98,7 @@ async def del_session(response: Response, session_id: UUID = Depends(cookie)):
 
 
 @app.post("/code", dependencies=[Depends(cookie)], tags=['Code'])
-async def save_code(language: str, code: str, description: str, session_data: GoogleAccInfo = Depends(verifier),
+def save_code(language: str, code: str, description: str, session_data: GoogleAccInfo = Depends(verifier),
                     db: Session = Depends(get_db)):
     c = Code(description=description, language=language, code=code, email=session_data.email)
     try:
@@ -110,14 +110,14 @@ async def save_code(language: str, code: str, description: str, session_data: Go
 
 
 @app.get("/user_code", dependencies=[Depends(cookie)], tags=['Code'], response_model=List[ShortCodeDescription])
-async def all_user_code(session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
+def all_user_code(session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
     """return all saved user code in short format"""
     all_code = db.query(Code).filter(Code.email == session_data.email).all()
     return [ShortCodeDescription(id=c.id, description=c.description) for c in all_code]
 
 
 @app.get("/code", dependencies=[Depends(cookie)], tags=['Code'])
-async def code(code_id: int, session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
+def code(code_id: int, session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
     """return one source code by id"""
     db_code = db.query(Code).filter(Code.email == session_data.email, Code.id == code_id).first()
     if db_code is None:
@@ -126,7 +126,7 @@ async def code(code_id: int, session_data: GoogleAccInfo = Depends(verifier), db
 
 
 @app.delete('/code', dependencies=[Depends(cookie)], tags=['Code'])
-async def delete_code(code_id: int, session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
+def delete_code(code_id: int, session_data: GoogleAccInfo = Depends(verifier), db: Session = Depends(get_db)):
     db_code = db.query(Code).filter(Code.email == session_data.email, Code.id == code_id).first()
     if db_code is None:
         return Response(status_code=status.HTTP_200_OK)
@@ -139,13 +139,13 @@ async def delete_code(code_id: int, session_data: GoogleAccInfo = Depends(verifi
 
 
 @app.get('/functions')
-async def all_functions():
+def all_functions():
     """return all available languages and models"""
     return functions
 
 
 @app.get('/view_graph')
-async def view_graph(code: str = example_code, lang: str = "python", model: str = "ast"):
+def view_graph(code: str = example_code, lang: str = "python", model: str = "ast"):
     model_builder = get_model_builder(lang, model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
@@ -160,7 +160,7 @@ async def view_graph(code: str = example_code, lang: str = "python", model: str 
 
 
 @app.post('/v2/view_graph')
-async def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
+def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
     model_builder = get_model_builder(request.lang, request.model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")

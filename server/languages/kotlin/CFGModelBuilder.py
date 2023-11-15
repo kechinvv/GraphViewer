@@ -34,7 +34,7 @@ class CFGModelBuilder(ModelBuilder):
             else:
                 with open(Path(dir) / files[0], 'r') as f:
                     return f.read()
-                
+
 
 def get_package(code: str):
     clear_code = code.strip()
