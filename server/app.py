@@ -14,7 +14,7 @@ from authlib.integrations.starlette_client import OAuth, OAuthError
 from apps.schemas.GoogleAccInfo import GoogleAccInfo
 from apps.schemas.ShortCodeDescription import ShortCodeDescription
 from dot_to_json.converter import convert_dot_to_json
-from dot_to_json.request import GetGraphRequest
+from dot_to_json.request import V1GetGraphRequest, map_to_response, V1GetGraphResponse
 from apps.vk import AccountInfo
 from apps.session import backend, cookie, verifier
 from apps.models import Code
@@ -160,7 +160,7 @@ async def view_graph(code: str = example_code, lang: str = "python", model: str 
 
 
 @app.post('/v2/view_graph')
-async def view_graph(request: GetGraphRequest):
+async def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
     model_builder = get_model_builder(request.lang, request.model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
@@ -168,7 +168,7 @@ async def view_graph(request: GetGraphRequest):
     try:
         data = model_builder.build(request.code)
         response = convert_dot_to_json(data, request.lang)
-        return Response(response, media_type=f"application/json")
+        return map_to_response(response)
     except SyntaxError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
