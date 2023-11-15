@@ -1,5 +1,8 @@
+from copy import copy
+
 import pydot
 import json
+import queue
 
 
 class Node:
@@ -7,6 +10,10 @@ class Node:
         self.id = id
         self.label = label
         self.shape = shape
+        self.lvl = -1
+
+    def set_lvl(self, lvl):
+        self.lvl = lvl
 
 
 class Edge:
@@ -55,7 +62,34 @@ def convert_dot_to_json(dot_graph, lang):
 
         return name
 
-    def dot_graph_to_graph(graph):
+    def bfs(node, edges, start_counter_value, nodes_dict):
+        nodes_queue = queue.Queue()
+        nodes_queue.put(node)
+        counter = start_counter_value
+        processed_nodes = set()
+        while not nodes_queue.empty():
+            current_node = nodes_queue.get()
+            processed_nodes.add(current_node.id)
+            current_node.set_lvl(counter)
+            counter += 1
+
+            for edge in edges:
+                if edge.source != current_node.id:
+                    continue
+
+                if edge.destination not in processed_nodes:
+                    nodes_queue.put(nodes_dict[edge.destination])
+
+        return counter
+
+    def get_nodes(graph):
+        nodes = copy(graph.nodes)
+        for subgraph in graph.subgraphs:
+            subgraph_nodes = get_nodes(subgraph)
+            nodes = nodes + subgraph_nodes
+        return nodes
+
+    def dot_graph_to_graph(graph) -> Graph:
         #nodes_with_edges = set()
         edges = []
         name = graph.get_name()
@@ -69,6 +103,7 @@ def convert_dot_to_json(dot_graph, lang):
 
             #nodes_with_edges.add(edge.source)
             #nodes_with_edges.add(edge.destination)
+
 
         nodes = []
         for dot_node in graph.get_nodes():
@@ -88,9 +123,18 @@ def convert_dot_to_json(dot_graph, lang):
             subgraph = dot_graph_to_graph(dot_subgraph)
             subgraphs.append(subgraph)
 
-        return Graph(name, nodes, edges, subgraphs)
+        response_graph = Graph(name, nodes, edges, subgraphs)
 
-    def graph_to_json(graph):
-        return GraphEncoder().encode(graph)
+        nodes_dict = {}
+        for node in get_nodes(response_graph):
+            nodes_dict[node.id] = node
+        counter = 1
+        for node in nodes:
+            if node.lvl != -1:
+                continue
 
-    return graph_to_json(dot_graph_to_graph(dot_to_graph(dot_graph)))
+            counter = bfs(node, edges, counter, nodes_dict)
+
+        return response_graph
+
+    return dot_graph_to_graph(dot_to_graph(dot_graph))
