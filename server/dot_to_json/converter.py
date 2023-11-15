@@ -99,14 +99,25 @@ def convert_dot_to_json(dot_graph, lang):
                 rc.append(node.data)
         return ''.join(rc)
 
-    def get_nodes(graph):
+    def get_copy_nodes(graph):
         nodes = copy(graph.nodes)
         for subgraph in graph.subgraphs:
-            subgraph_nodes = get_nodes(subgraph)
+            subgraph_nodes = get_copy_nodes(subgraph)
             nodes = nodes + subgraph_nodes
         return nodes
 
-    def add_positions(graph, nodes, doc):
+    def get_real_nodes(graph):
+        nodes = graph.nodes
+        for subgraph in graph.subgraphs:
+            subgraph_nodes = get_real_nodes(subgraph)
+            nodes = nodes + subgraph_nodes
+        return nodes
+
+    def add_positions(graph_full, d_graph):
+        svg_io = BytesIO(d_graph.create_svg())
+        # d_graph.write_svg("./test.svg")
+        doc = minidom.parse(svg_io)
+        nodes = get_real_nodes(graph_full)
         node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
         for p in doc.getElementsByTagName("g"):
             if "node" == p.getAttribute('class').lower():
@@ -120,12 +131,7 @@ def convert_dot_to_json(dot_graph, lang):
 
         doc.unlink()
 
-    def dot_graph_to_graph(graph, doc=None):
-        cur_doc = doc
-        if doc is None:
-            svg_io = BytesIO(graph.create_svg())
-            graph.write_svg("./test.svg")
-            cur_doc = minidom.parse(svg_io)
+    def dot_graph_to_graph(graph):
         # nodes_with_edges = set()
         edges = []
         name = graph.get_name()
@@ -153,17 +159,15 @@ def convert_dot_to_json(dot_graph, lang):
             node = Node(id, label, shape)
             nodes.append(node)
 
-        add_positions(graph, nodes, cur_doc)
-
         subgraphs = []
         for dot_subgraph in graph.get_subgraphs():
-            subgraph = dot_graph_to_graph(dot_subgraph, cur_doc)
+            subgraph = dot_graph_to_graph(dot_subgraph)
             subgraphs.append(subgraph)
 
         response_graph = Graph(name, nodes, edges, subgraphs)
 
         nodes_dict = {}
-        for node in get_nodes(response_graph):
+        for node in get_copy_nodes(response_graph):
             nodes_dict[node.id] = node
         counter = 1
         for node in nodes:
@@ -177,4 +181,7 @@ def convert_dot_to_json(dot_graph, lang):
     def graph_to_json(graph):
         return GraphEncoder().encode(graph)
 
-    return graph_to_json(dot_graph_to_graph(dot_to_graph(dot_graph)))
+    gv_graph = dot_to_graph(dot_graph)
+    graph = dot_graph_to_graph(gv_graph)
+    add_positions(graph, gv_graph)
+    return graph_to_json(graph)
