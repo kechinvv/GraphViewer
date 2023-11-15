@@ -16,19 +16,25 @@ class CFGModelBuilder(ModelBuilder):
         client = docker.from_env()
         with tempfile.TemporaryDirectory() as dir:
             class_name = get_class(code)
-            name = Path(dir) / '{}.java'.format(class_name)
+            name = Path(dir) / f'{class_name}.java'
             with open(name, 'w') as file:
                 file.write(code)
             try:
-                client.containers.run(
-                    'strgss/kt_with_jar', command=f"javac {class_name}.java",
-                    working_dir='/src', volumes=[f"{dir}:/src"], remove=True)
-                client.containers.run(
-                    'strgss/kt_with_jar', command=f"jar cvf main.jar {class_name}.class",
-                    working_dir='/src', volumes=[f"{dir}:/src"], remove=True)
-                client.containers.run(
-                    'strgss/kt_with_jar', command=f"java -jar /usr/lib/kt_cfg-v0.jar",
-                    working_dir='/src', volumes=[f"{dir}:/src"], remove=True)
+                container = client.containers.run(
+                    'strgss/kt_with_jar',
+                    working_dir='/src',
+                    volumes=[f'{dir}:/src'],
+                    command='/bin/sh',
+                    tty=True,
+                    detach=True
+                )
+
+                container.exec_run(f'javac {class_name}.java')
+                container.exec_run(f'jar cvf main.jar {class_name}.class')
+                container.exec_run('java -jar /usr/lib/kt_cfg-v0.jar')
+
+                container.stop()
+                container.remove()
             except ContainerError as e:
                 raise RuntimeError(e.stderr)
             files = fnmatch.filter(os.listdir(dir), f'dot.txt')
