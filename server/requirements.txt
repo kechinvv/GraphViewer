@@ -11,6 +11,7 @@ dnspython==2.2.1
 docker
 email-validator==1.2.1
 fastapi==0.78.0
+fastapi_utils
 fastapi-sessions==0.3.2
 graphviz==0.20
 h11==0.13.0

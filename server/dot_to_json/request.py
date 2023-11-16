@@ -10,81 +10,93 @@ class NodeType(CamelStrEnum):
     ELLIPSE = auto()
 
 
-class V1GetGraphRequest(BaseModel):
+class V2GetGraphRequest(BaseModel):
     code: str
     lang: str
     model: str
 
 
-class V1Edge(BaseModel):
+class V2Edge(BaseModel):
+    id: str
     source: str
     target: str
     style: str
 
 
-class V1Label(BaseModel):
+class V2Label(BaseModel):
     label: str
 
 
-class V1Node(BaseModel):
+class V2Node(BaseModel):
     id: str
-    data: V1Label
+    data: V2Label
     type: NodeType
     lvl: int
+    position: dict[str, float]
 
 
-class V1Graph(BaseModel):
+class V2Graph(BaseModel):
     name: str
-    nodes: list[V1Node]
-    edges: list[V1Edge]
-    subgraphs: list
+    nodes: list[V2Node]
+    edges: list[V2Edge]
 
 
-class V1GetGraphResponse(BaseModel):
-    graph: V1Graph
+class V2GetGraphResponse(BaseModel):
+    graph: V2Graph
 
 
-def map_to_response(graph: Graph) -> V1GetGraphResponse:
-    return V1GetGraphResponse(graph=map_to_v1graph(graph))
+def map_to_response(graph: Graph) -> V2GetGraphResponse:
+    return V2GetGraphResponse(graph=map_to_v2graph(graph))
 
 
-def map_to_v1graph(graph: Graph) -> V1Graph:
+def map_to_v2graph(graph: Graph) -> V2Graph:
     nodes = list(map(map_node, graph.nodes))
     edges = list(map(map_edge, graph.edges))
-    subgraphs = list(map(map_to_v1graph, graph.subgraphs))
 
-    v1graph = V1Graph(
+    v2graph = V2Graph(
         name=graph.name,
         nodes=nodes,
-        edges=edges,
-        subgraphs=subgraphs)
+        edges=edges)
 
-    return v1graph
+    return v2graph
 
 
-def map_node(node: Node) -> V1Node:
-    label = V1Label(label=node.label)
+def map_node(node: Node) -> V2Node:
+    label = V2Label(label=node.label)
     shape = map_shape(node.shape)
 
-    model = V1Node(id=node.id, data=label, type=shape, lvl=node.lvl)
+    model = V2Node(id=node.id,
+                   data=label,
+                   type=shape,
+                   lvl=node.lvl,
+                   position={"x": node.x, "y": node.y})
 
     return model
 
 
 def map_shape(shape: str) -> NodeType:
     match shape:
-        case "Mdiamond":    return NodeType.RHOMBUS
-        case "record":      return NodeType.RECTANGLE
-        case "box":         return NodeType.RECTANGLE
-        case "rect":        return NodeType.RECTANGLE
-        case "rectangle":   return NodeType.RECTANGLE
-        case "square":      return NodeType.RECTANGLE
-        case "ellipse":     return NodeType.ELLIPSE
-        case "oval":        return NodeType.ELLIPSE
-        case _:             return NodeType.RECTANGLE
+        case "Mdiamond":
+            return NodeType.RHOMBUS
+        case "record":
+            return NodeType.RECTANGLE
+        case "box":
+            return NodeType.RECTANGLE
+        case "rect":
+            return NodeType.RECTANGLE
+        case "rectangle":
+            return NodeType.RECTANGLE
+        case "square":
+            return NodeType.RECTANGLE
+        case "ellipse":
+            return NodeType.ELLIPSE
+        case "oval":
+            return NodeType.ELLIPSE
+        case _:
+            return NodeType.RECTANGLE
 
 
-def map_edge(edge: Edge) -> V1Edge:
-    model = V1Edge(source=edge.source, target=edge.destination, style=edge.style)
+def map_edge(edge: Edge) -> V2Edge:
+    model = V2Edge(id=edge.id, source=edge.source, target=edge.destination, style=edge.style)
 
     return model

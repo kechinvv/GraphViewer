@@ -13,8 +13,10 @@ from authlib.integrations.starlette_client import OAuth, OAuthError
 
 from apps.schemas.GoogleAccInfo import GoogleAccInfo
 from apps.schemas.ShortCodeDescription import ShortCodeDescription
+from dot_to_json.deprecated.converter_with_sub import convert_dot_to_json as convert_dot_to_json_with_sub
+from dot_to_json.deprecated.request_with_sub import V1GetGraphRequest, map_to_v1response, V1GetGraphResponse
 from dot_to_json.converter import convert_dot_to_json
-from dot_to_json.request import V1GetGraphRequest, map_to_response, V1GetGraphResponse
+from dot_to_json.request import V2GetGraphRequest, map_to_response, V2GetGraphResponse
 from apps.vk import AccountInfo
 from apps.session import backend, cookie, verifier
 from apps.models import Code
@@ -99,7 +101,7 @@ async def del_session(response: Response, session_id: UUID = Depends(cookie)):
 
 @app.post("/code", dependencies=[Depends(cookie)], tags=['Code'])
 def save_code(language: str, code: str, description: str, session_data: GoogleAccInfo = Depends(verifier),
-                    db: Session = Depends(get_db)):
+              db: Session = Depends(get_db)):
     c = Code(description=description, language=language, code=code, email=session_data.email)
     try:
         db.add(c)
@@ -149,7 +151,7 @@ def view_graph(code: str = example_code, lang: str = "python", model: str = "ast
     model_builder = get_model_builder(lang, model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
-    
+
     try:
         data = model_builder.build(code)
         return Response(data, media_type=f"text/dot")
@@ -159,12 +161,28 @@ def view_graph(code: str = example_code, lang: str = "python", model: str = "ast
         raise HTTPException(400, detail=str(e))
 
 
-@app.post('/v2/view_graph')
-def view_graph(request: V1GetGraphRequest) -> V1GetGraphResponse:
+@app.post('/v1/view_graph')
+def view_graph_v1(request: V1GetGraphRequest) -> V1GetGraphResponse:
     model_builder = get_model_builder(request.lang, request.model)
     if model_builder is None:
         raise HTTPException(400, "Language and model not implemented")
-    
+
+    try:
+        data = model_builder.build(request.code)
+        response = convert_dot_to_json_with_sub(data, request.lang)
+        return map_to_v1response(response)
+    except SyntaxError as e:
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(400, detail=str(e))
+
+
+@app.post('/v2/view_graph')
+def view_graph_v2(request: V2GetGraphRequest) -> V2GetGraphResponse:
+    model_builder = get_model_builder(request.lang, request.model)
+    if model_builder is None:
+        raise HTTPException(400, "Language and model not implemented")
+
     try:
         data = model_builder.build(request.code)
         response = convert_dot_to_json(data, request.lang)
