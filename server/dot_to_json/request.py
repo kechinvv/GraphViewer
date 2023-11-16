@@ -31,13 +31,13 @@ class V2Node(BaseModel):
     data: V2Label
     type: NodeType
     lvl: int
+    position: dict[str: float]
 
 
 class V2Graph(BaseModel):
     name: str
     nodes: list[V2Node]
     edges: list[V2Edge]
-    subgraphs: list
 
 
 class V2GetGraphResponse(BaseModel):
@@ -51,13 +51,11 @@ def map_to_response(graph: Graph) -> V2GetGraphResponse:
 def map_to_v2graph(graph: Graph) -> V2Graph:
     nodes = list(map(map_node, graph.nodes))
     edges = list(map(map_edge, graph.edges))
-    subgraphs = list(map(map_to_v2graph, graph.subgraphs))
 
     v2graph = V2Graph(
         name=graph.name,
         nodes=nodes,
-        edges=edges,
-        subgraphs=subgraphs)
+        edges=edges)
 
     return v2graph
 
@@ -66,22 +64,35 @@ def map_node(node: Node) -> V2Node:
     label = V2Label(label=node.label)
     shape = map_shape(node.shape)
 
-    model = V2Node(id=node.id, data=label, type=shape, lvl=node.lvl)
+    model = V2Node(id=node.id,
+                   data=label,
+                   type=shape,
+                   lvl=node.lvl,
+                   position={"x": node.x, "y": node.y})
 
     return model
 
 
 def map_shape(shape: str) -> NodeType:
     match shape:
-        case "Mdiamond":    return NodeType.RHOMBUS
-        case "record":      return NodeType.RECTANGLE
-        case "box":         return NodeType.RECTANGLE
-        case "rect":        return NodeType.RECTANGLE
-        case "rectangle":   return NodeType.RECTANGLE
-        case "square":      return NodeType.RECTANGLE
-        case "ellipse":     return NodeType.ELLIPSE
-        case "oval":        return NodeType.ELLIPSE
-        case _:             return NodeType.RECTANGLE
+        case "Mdiamond":
+            return NodeType.RHOMBUS
+        case "record":
+            return NodeType.RECTANGLE
+        case "box":
+            return NodeType.RECTANGLE
+        case "rect":
+            return NodeType.RECTANGLE
+        case "rectangle":
+            return NodeType.RECTANGLE
+        case "square":
+            return NodeType.RECTANGLE
+        case "ellipse":
+            return NodeType.ELLIPSE
+        case "oval":
+            return NodeType.ELLIPSE
+        case _:
+            return NodeType.RECTANGLE
 
 
 def map_edge(edge: Edge) -> V2Edge:
