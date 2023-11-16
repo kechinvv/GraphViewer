@@ -1,84 +1,82 @@
-// import {useSelector} from "react-redux"
 
-// useSelector(state => state.graph)
-import { useCallback } from 'react';
-import ReactFlow, {
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  ConnectionLineType,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+import { useState, useEffect } from "react";
+import ReactFlow from "react-flow-renderer";
+import { useNodesState, useEdgesState, MarkerType } from "reactflow"
 
-import CustomNode from './CustomNode';
-
-import styles from './Flow.module.css';
-
-const initialNodes = [
-  {
-    id: '1',
-    type: 'input',
-    data: { label: 'Node 1' },
-    position: { x: 250, y: 5 },
-  },
-  {
-    id: '2',
-    data: { label: 'Node 2' },
-    position: { x: 100, y: 100 },
-  },
-  {
-    id: '3',
-    data: { label: 'Node 3' },
-    position: { x: 400, y: 100 },
-  },
-  {
-    id: '4',
-    data: { label: 'Node 4' },
-    position: { x: 400, y: 200 },
-    type: 'custom',
-    className: styles.customNode,
-  },
-];
-
-const initialEdges = [
-  { id: 'e1-2', source: '1', target: '2' },
-  { id: 'e1-3', source: '1', target: '3' },
-];
+import { useSelector } from "react-redux"
+import RectangleNode from "./flowShapes/RectangleNode";
+import RhombusNode from "./flowShapes/RhombusNode";
+import elkLayout from "./elkLayout";
+import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
 
 const nodeTypes = {
-  custom: CustomNode,
+    rectangleNode: RectangleNode,
+    rhombusNode: RhombusNode
 };
 
-const defaultEdgeOptions = {
-  animated: true,
-  type: 'smoothstep',
+const edgeTypes = {
+    smart : SmartBezierEdge
 };
 
 function Flow() {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
 
-  return (
-    <div className={styles.flow} style={{ height: 800 }}>
-      <ReactFlow
-        nodes={nodes}
+    const { nodes: initialNodes, edges: initialEdges } = useSelector(state => state.graph)
+
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    const nodesForFlow = (graph) => {
+        return [
+            ...graph.children.map((node) => {
+                return {
+                    ...initialNodes.find((n) => n.id === node.id),
+                    position: { x: node.x, y: node.y }
+                };
+            })
+        ];
+    };
+    const edgesForFlow = (graph) => {
+        return [
+            ...graph.edges.map((edge) => {
+                return {
+                    ...edge,
+                    type: 'smart',
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        width: 20,
+                        height: 20,
+                        color: '#FFFFFF',
+                      },
+                };
+            })
+        ];
+    };
+
+    useEffect(() => {
+        if (Array.isArray(initialNodes) && Array.isArray(initialEdges)) {
+            elkLayout(initialNodes.map(node => ({ ...node })), initialEdges.map(node => ({ ...node }))).then((graph) => {
+                setNodes(nodesForFlow(graph));
+                setEdges(edgesForFlow(graph));
+            });
+        }
+
+    }, [initialNodes, initialEdges])
+
+
+    if (nodes === null) {
+        return <></>;
+    }
+      
+    return (
+        <ReactFlow 
+        nodes={nodes} 
+        edges={edges} 
         onNodesChange={onNodesChange}
-        edges={edges}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        connectionLineType={ConnectionLineType.SmoothStep}
-        fitView
-      />
-    </div>
-  );
+        onEdgesChange={onEdgesChange} 
+        nodeTypes={nodeTypes} 
+        edgeTypes={edgeTypes}
+        fitView />
+    );
 }
 
 export default Flow;
-
-

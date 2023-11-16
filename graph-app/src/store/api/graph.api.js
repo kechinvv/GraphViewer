@@ -7,7 +7,10 @@ export const graphApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: baseApiUrl, credentials: "same-origin",}),
     endpoints: (builder) => ({
         getGraphCode: builder.query({
-            query: (codeText, language, graphType) => `view_graph?code=${codeText}&lang=${language}&model=${graphType}`
+            query: (args) => {
+                const { codeText, language, graphType } = args
+                return { url : `view_graph?code=${codeText}&lang=${language}&model=${graphType}`}
+            }
         }),
     }),
 })
