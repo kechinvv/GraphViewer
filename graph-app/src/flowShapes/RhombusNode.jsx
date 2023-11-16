@@ -1,6 +1,7 @@
 import { Handle, Position } from "react-flow-renderer";
 import "./RhombusNode.css"
 import { memo } from 'react';
+import { VscArchive } from "react-icons/vsc";
 
 function calculateDimensions(text) {
     // Create a temporary div element
@@ -38,7 +39,7 @@ const RhombusleNode = ({ data }) => {
         <div className="handles-container" style={{height: `${containerSize}px`}}>
             <div className="rhombus-node" style={rhombusStyle}></div>
             <Handle type="target" position={Position.Top} className="handle" />
-            <div className="rhombus-content">{data.label}</div>
+            <div className="rhombus-content">{data.label}{data.hasHidden ? <VscArchive/>: ''}</div>
             <Handle type="source" position={Position.Bottom} />
         </div>
 
