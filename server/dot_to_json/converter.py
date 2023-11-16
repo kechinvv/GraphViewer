@@ -34,11 +34,10 @@ class Edge:
 
 
 class Graph:
-    def __init__(self, name, nodes, edges, subgraphs):
+    def __init__(self, name, nodes, edges):
         self.name = name
         self.nodes = nodes
         self.edges = edges
-        self.subgraphs = subgraphs
 
 
 class GraphEncoder(json.JSONEncoder):
@@ -61,7 +60,7 @@ def convert_dot_to_json(dot_graph, lang):
         raise Exception
 
     def dot_to_graph(dot):
-        dot_string = dot_to_str(dot_graph)
+        dot_string = dot_to_str(dot)
 
         graphs = pydot.graph_from_dot_data(dot_string)
         return graphs[0]
@@ -101,16 +100,10 @@ def convert_dot_to_json(dot_graph, lang):
 
     def get_copy_nodes(graph):
         nodes = copy(graph.nodes)
-        for subgraph in graph.subgraphs:
-            subgraph_nodes = get_copy_nodes(subgraph)
-            nodes = nodes + subgraph_nodes
         return nodes
 
     def get_real_nodes(graph):
         nodes = graph.nodes
-        for subgraph in graph.subgraphs:
-            subgraph_nodes = get_real_nodes(subgraph)
-            nodes = nodes + subgraph_nodes
         return nodes
 
     def add_positions(graph_full, d_graph):
@@ -159,12 +152,12 @@ def convert_dot_to_json(dot_graph, lang):
             node = Node(id, label, shape)
             nodes.append(node)
 
-        subgraphs = []
         for dot_subgraph in graph.get_subgraphs():
             subgraph = dot_graph_to_graph(dot_subgraph)
-            subgraphs.append(subgraph)
+            nodes += subgraph.nodes
+            edges += subgraph.edges
 
-        response_graph = Graph(name, nodes, edges, subgraphs)
+        response_graph = Graph(name, nodes, edges)
 
         nodes_dict = {}
         for node in get_copy_nodes(response_graph):
