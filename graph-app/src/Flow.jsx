@@ -6,17 +6,26 @@ import { useNodesState, useEdgesState, MarkerType } from "reactflow"
 import { useSelector } from "react-redux"
 import RectangleNode from "./flowShapes/RectangleNode";
 import RhombusNode from "./flowShapes/RhombusNode";
+import EllipseNode from "./flowShapes/EllipseNode";
 import elkLayout from "./elkLayout";
 import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge'
 
 const nodeTypes = {
-    rectangleNode: RectangleNode,
-    rhombusNode: RhombusNode
+    rectangle: RectangleNode,
+    rhombus: RhombusNode,
+    ellipse: EllipseNode
 };
 
 const edgeTypes = {
     smart : SmartBezierEdge
 };
+
+const markerEnd = {
+    type: MarkerType.ArrowClosed,
+    width: 20,
+    height: 20,
+    color: '#FFFFFF',
+}
 
 function Flow() {
 
@@ -25,28 +34,43 @@ function Flow() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-    const nodesForFlow = (graph) => {
+    // features related to autolayouting
+    // const nodesForFlow = (graph) => {
+    //     return [
+    //         ...graph.children.map((node) => {
+    //             return {
+    //                 ...initialNodes.find((n) => n.id === node.id),
+    //                 position: { x: node.x, y: node.y }
+    //             };
+    //         })
+    //     ];
+    // };
+    // const edgesForFlow = (graph) => {
+    //     return [
+    //         ...graph.edges.map((edge) => {
+    //             return {
+    //                 target: edge.target,
+    //                 source: edge.source,
+    //                 id: edge.id,
+    //                 markerEnd: {
+    //                     type: MarkerType.ArrowClosed,
+    //                     width: 20,
+    //                     height: 20,
+    //                     color: '#FFFFFF',
+    //                   },
+    //             };
+    //         })
+    //     ];
+    // };
+    
+    const noGraphEdgesForFlow = (edges) => {
         return [
-            ...graph.children.map((node) => {
+            ...edges.map((edge) => {
                 return {
-                    ...initialNodes.find((n) => n.id === node.id),
-                    position: { x: node.x, y: node.y }
-                };
-            })
-        ];
-    };
-    const edgesForFlow = (graph) => {
-        return [
-            ...graph.edges.map((edge) => {
-                return {
-                    ...edge,
-                    type: 'smart',
-                    markerEnd: {
-                        type: MarkerType.ArrowClosed,
-                        width: 20,
-                        height: 20,
-                        color: '#FFFFFF',
-                      },
+                    target: edge.target,
+                    source: edge.source,
+                    id: edge.id,
+                    markerEnd: markerEnd
                 };
             })
         ];
@@ -54,10 +78,13 @@ function Flow() {
 
     useEffect(() => {
         if (Array.isArray(initialNodes) && Array.isArray(initialEdges)) {
-            elkLayout(initialNodes.map(node => ({ ...node })), initialEdges.map(node => ({ ...node }))).then((graph) => {
-                setNodes(nodesForFlow(graph));
-                setEdges(edgesForFlow(graph));
-            });
+            // autolayouting is deprecated
+            // elkLayout(initialNodes.map(node => ({ ...node })), initialEdges.map(node => ({ ...node }))).then((graph) => {
+            //     setNodes(nodesForFlow(graph));
+            //     setEdges(edgesForFlow(graph));
+            // });
+            setNodes(initialNodes);
+            setEdges(noGraphEdgesForFlow(initialEdges));
         }
 
     }, [initialNodes, initialEdges])

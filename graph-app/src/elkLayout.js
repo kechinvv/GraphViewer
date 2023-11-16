@@ -6,8 +6,8 @@ const elkLayout = (initialNodes, initialEdges) => {
   const nodesForElk = initialNodes.map((node) => {
     return {
       id: node.id,
-      width: node.type === "rectangleNode" ? 100 : 100,
-      height: node.type === "rhombusNode" ? 100 : 100
+      width: node.type === "rectangle" ? 100 : 100,
+      height: node.type === "rhombus" ? 100 : 100
     };
   });
   const graph = {

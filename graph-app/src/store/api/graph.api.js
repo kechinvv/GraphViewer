@@ -8,8 +8,7 @@ export const graphApi = createApi({
     endpoints: (builder) => ({
         getGraphCode: builder.query({
             query: (args) => {
-                const { codeText, language, graphType } = args
-                return { url : `view_graph?code=${codeText}&lang=${language}&model=${graphType}`}
+                return { url : `v2/view_graph`, method: 'POST', body: {...args}}
             }
         }),
     }),

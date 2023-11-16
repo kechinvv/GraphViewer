@@ -1,14 +1,15 @@
 
-.rectangle-node {
+.ellipse-node {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 50%;
     padding: 5px;
     width: fit-content;
     color: #333;
+    min-width: 55px;
    }
    
-   .rectangle-node .handle {
+   .ellipse-node .handle {
     width: 10px;
     height: 10px;
     background-color: #ccc;

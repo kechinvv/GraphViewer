@@ -35,9 +35,9 @@ let defaultCodeState = [
     `a = 2`,
     `b = 3`,
     `if a > b:`,
-    `a = a + b`,
+    `   a = a + b`,
     `else:`,
-    `a = a - b`,
+    `   a = a - b`,
     `c = a + b`,
 ].join('\n')
 
@@ -49,11 +49,12 @@ function CodeEditor() {
     // const [themeIsLight, setTheme] = useState(true);
     const [lang, setLang] = useState("python");
     const [code, setCode] = useState(defaultCodeState);
+    const [model, setModel] = useState("ast")
 
     const [trigger, result, lastPromiseInfo] = useLazyGetGraphCodeQuery()
     useEffect(() => {
         if (result.data) {
-            const graph = result.data
+            const graph = result.data.graph
             dispatch(setNodes(graph.nodes))
             dispatch(setEdges(graph.edges))
         }
@@ -63,8 +64,8 @@ function CodeEditor() {
     useSelector(state => {
         console.log(state.graph)
     })
-    const sendBackendRequest = useCallback((code, lang, graphType) => {
-        trigger({ codeText: code, language: lang, graphType: graphType })
+    const sendBackendRequest = useCallback((code, lang, model) => {
+        trigger({ code, lang, model})
     }, []);
 
     const debouncedSendRequest = useMemo(() => {
@@ -74,8 +75,8 @@ function CodeEditor() {
     // make async request to update the graph
     useEffect(() => {
         // call debounced request here
-        debouncedSendRequest(encodeURIComponent(code), lang, "cfg");
-    }, [code, lang]);
+        debouncedSendRequest(code, lang, model);
+    }, [code, lang, model]);
 
     return (
         <div className="columns">
