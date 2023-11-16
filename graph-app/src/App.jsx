@@ -7,12 +7,12 @@ import { ReactFlowProvider } from 'reactflow';
 function App() {
 
   return (
-    <>
+    <div className="topDiv">
     <CodeEditor></CodeEditor>
     <ReactFlowProvider>
         <Flow/>
     </ReactFlowProvider>
-    </>
+    </div>
   )
 }
 

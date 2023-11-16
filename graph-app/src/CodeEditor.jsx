@@ -1,10 +1,9 @@
 
-import {useEffect, useState, useCallback, useMemo} from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import AceEditor from "react-ace"
 import debounce from "lodash/debounce";
 import { useLazyGetGraphCodeQuery } from './store/api/graph.api'
-import {useDispatch} from "react-redux"
-
+import { useDispatch, useSelector } from "react-redux"
 
 // highlight imports
 import "ace-builds/src-noconflict/mode-python"
@@ -44,40 +43,6 @@ let defaultCodeState = [
 
 
 
-// let delayTimer;
-// let wait_for_change_delay = 1500;
-// function update_graph() {
-//     let language = get_current(document.getElementById("code_box")).toLowerCase();
-//     let graph_type = get_current(document.getElementById("graph_box")).toLowerCase();
-//     let raw_text = editor.getValue();
-//     let code_text = encodeURIComponent(raw_text);
-//     let query = `${window.location}view_graph?code=${code_text}&lang=${language}&model=${graph_type}`
-//     let message_panel = document.getElementById("console_content");
-//     let loading_panel = document.getElementById("loading_panel");
-//     let console_content = document.getElementById("console_content");
-//     clearTimeout(delayTimer);
-//     if (raw_text.trim().length !== 0)
-//         delayTimer = setTimeout(async function () {
-//             loading_panel.style.setProperty("display", "block");
-//             let res = await fetch(query);
-//             loading_panel.style.setProperty("display", "none");
-//             if (res.status !== 200) {
-//                 d3.select('svg').selectAll('*').remove();
-//                 let j = await res.json();
-//                 message_panel.textContent = j.detail
-//             } else {
-//                 console_content.textContent = "";
-//                 let js = await res.text();
-//                 console.log(js);
-//                 d3.select("#graph").graphviz().renderDot(js);
-//                 d3.select("#graph").graphviz().scale = 1;
-//             }
-//         }, wait_for_change_delay);
-//     return 0;
-// }
-
-
-
 
 function CodeEditor() {
     const dispatch = useDispatch()
@@ -85,29 +50,33 @@ function CodeEditor() {
     const [lang, setLang] = useState("python");
     const [code, setCode] = useState(defaultCodeState);
 
+    const [trigger, result, lastPromiseInfo] = useLazyGetGraphCodeQuery()
+    useEffect(() => {
+        if (result.data) {
+            const graph = result.data
+            dispatch(setNodes(graph.nodes))
+            dispatch(setEdges(graph.edges))
+        }
+    }, [result]);
+
+
+    useSelector(state => {
+        console.log(state.graph)
+    })
+    const sendBackendRequest = useCallback((code, lang, graphType) => {
+        trigger({ codeText: code, language: lang, graphType: graphType })
+    }, []);
+
+    const debouncedSendRequest = useMemo(() => {
+        return debounce(sendBackendRequest, 1500);
+    }, [sendBackendRequest]);
 
     // make async request to update the graph
     useEffect(() => {
         // call debounced request here
-        debouncedSendRequest(encodeURIComponent(code));
-    }, [code]);
+        debouncedSendRequest(encodeURIComponent(code), lang, "cfg");
+    }, [code, lang]);
 
-    const [trigger, result, lastPromiseInfo] = useLazyGetGraphCodeQuery()
-    useEffect(() => {
-        dispatch(setNodes(result.nodes))
-        dispatch(setEdges(result.edges))
-
-        console.log(result.error)
-    }, [result]);
-
-    const sendBackendRequest = useCallback((value) => {
-        trigger(code, lang, "cfg")
-      }, []);
-
-    const debouncedSendRequest = useMemo(() => {
-        return debounce(sendBackendRequest, 1000);
-      }, [sendBackendRequest]);
-    
     return (
         <div className="columns">
             <div className="column">
@@ -136,13 +105,11 @@ function CodeEditor() {
                 <h2>Editor</h2>
                 <AceEditor
                     value={code}
-                    height="1000px"
-                    width="1000px"
                     setOptions={{
                         useWorker: false
                     }}
                     mode={lang}
-                    theme={"monokai"}
+                    theme={"github"}
                     onChange={(e) => setCode(e)}
                 />
             </div>
