@@ -28,6 +28,14 @@ pipenv shell
 pipenv install
 python ./app.py
 ```
+
+## Билд статики
+```bash
+cd graph-app
+bun install
+bun run build
+```
+
 ## Запуск через virtualenv
 ```bash
 pip install virtualenv
