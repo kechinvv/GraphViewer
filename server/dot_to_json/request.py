@@ -31,7 +31,7 @@ class V2Node(BaseModel):
     data: V2Label
     type: NodeType
     lvl: int
-    position: dict[str: float]
+    position: dict[str, float]
 
 
 class V2Graph(BaseModel):
