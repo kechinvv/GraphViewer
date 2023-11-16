@@ -121,7 +121,7 @@ def convert_dot_to_json(dot_graph, lang):
 
     def add_positions(graph_full, d_graph):
         svg_io = BytesIO(d_graph.create_svg())
-        d_graph.write_svg("./test.svg")
+        # d_graph.write_svg("./test.svg")
         doc = minidom.parse(svg_io)
         nodes = get_real_nodes(graph_full)
         node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
@@ -137,27 +137,39 @@ def convert_dot_to_json(dot_graph, lang):
 
         doc.unlink()
 
-    def dot_graph_to_graph(graph, cur_id=0) -> tuple[Graph, int | Any]:
+    def dot_graph_to_graph(graph, new_ids, cur_id) -> tuple[Graph, int | Any]:
         # nodes_with_edges = set()
         edges = []
         name = graph.get_name()
-        new_ids = dict()
         my_id = cur_id
         for dot_edge in graph.get_edges():
-            # new_ids[dot_edge.get_source()] = cur_id
-            # dot_edge.set(source)
-            # source = cur_id
-            # cur_id += 1
-            #
-            # new_ids[dot_edge.get_destination()] = cur_id
-            # destination = cur_id
-            # cur_id += 1
+            # if dot_edge.get_source() in new_ids.keys():
+            #     source = new_ids[dot_edge.get_source()]
+            if get_node_name(dot_edge.get_source()) in new_ids.keys():
+                source = new_ids[get_node_name(dot_edge.get_source())]
+            else:
+                source = f'generatedId{my_id}'
+                # new_ids[dot_edge.get_source()] = source
+                new_ids[get_node_name(dot_edge.get_source())] = source
+                my_id += 1
 
-            edge_id = f'edge{my_id}'
+            # if dot_edge.get_destination() in new_ids.keys():
+            #     destination = new_ids[dot_edge.get_destination()]
+            if get_node_name(dot_edge.get_destination()) in new_ids.keys():
+                destination = new_ids[get_node_name(dot_edge.get_destination())]
+            else:
+                destination = f'generatedId{my_id}'
+                # new_ids[dot_edge.get_destination()] = destination
+                new_ids[get_node_name(dot_edge.get_destination())] = destination
+                my_id += 1
+
+            edge_id = f'generatedId{my_id}'
             my_id += 1
 
-            source = get_node_name(dot_edge.get_source())
-            destination = get_node_name(dot_edge.get_destination())
+            dot_edge.obj_dict['points'] = (source, destination)
+
+            # source = get_node_name(dot_edge.get_source())
+            # destination = get_node_name(dot_edge.get_destination())
             style = dot_edge.get_attributes().get("style", EDGE_STYLE_DEFAULT_VALUE)
 
             edge = Edge(edge_id, source, destination, style)
@@ -168,7 +180,11 @@ def convert_dot_to_json(dot_graph, lang):
 
         nodes = []
         for dot_node in graph.get_nodes():
-            id = dot_node.get_name()
+            if dot_node.get_name() in new_ids.keys():
+                node_id = new_ids[dot_node.get_name()]
+            else:
+                node_id = dot_node.get_name()
+            dot_node.set_name(node_id)
 
             # if id not in nodes_with_edges:
             #    continue
@@ -176,11 +192,11 @@ def convert_dot_to_json(dot_graph, lang):
             label = dot_node.get_attributes().get("label", LABEL_DEFAULT_VALUE)
             shape = dot_node.get_attributes().get("shape", SHAPE_DEFAULT_VALUE)
 
-            node = Node(id, label, shape)
+            node = Node(node_id, label, shape)
             nodes.append(node)
 
         for dot_subgraph in graph.get_subgraphs():
-            subgraph, my_id = dot_graph_to_graph(dot_subgraph, my_id)
+            subgraph, my_id = dot_graph_to_graph(dot_subgraph, new_ids, my_id)
             nodes += subgraph.nodes
             edges += subgraph.edges
 
@@ -194,10 +210,33 @@ def convert_dot_to_json(dot_graph, lang):
         in_use_nodes = filter(lambda n: n.id in used_nodes_id, full_graph.nodes)
         full_graph.nodes = list(in_use_nodes)
 
+    def search_in_dict(d, query):
+        for label, new_id in d.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
+            if new_id == query:
+                return label
+        return "SomeNode"
+
+    def add_native_nods(full_graph, fresh_ids):
+        nodes_ids = [n.id for n in full_graph.nodes]
+        for e in full_graph.edges:
+            if e.source not in nodes_ids:
+                label = search_in_dict(fresh_ids, e.source)
+                node = Node(e.source, label, SHAPE_DEFAULT_VALUE)
+                full_graph.nodes.append(node)
+                nodes_ids.append(e.source)
+            if e.destination not in nodes_ids:
+                label = search_in_dict(fresh_ids, e.destination)
+                node = Node(e.destination, label, SHAPE_DEFAULT_VALUE)
+                full_graph.nodes.append(node)
+                nodes_ids.append(e.destination)
+
+
     gv_graph = dot_to_graph(dot_graph)
-    graph, _ = dot_graph_to_graph(gv_graph)
+    updated_ids = dict()
+    graph, _ = dot_graph_to_graph(gv_graph, updated_ids, 0)
 
     filter_nodes_without_links(graph)
+    add_native_nods(graph, updated_ids)
     add_lvl(graph)
     add_positions(graph, gv_graph)
 
