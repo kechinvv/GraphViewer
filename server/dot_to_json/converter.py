@@ -98,13 +98,24 @@ def convert_dot_to_json(dot_graph, lang):
                 rc.append(node.data)
         return ''.join(rc)
 
-    def get_copy_nodes(graph):
-        nodes = copy(graph.nodes)
+    def get_copy_nodes(graph_solo):
+        nodes = copy(graph_solo.nodes)
         return nodes
 
-    def get_real_nodes(graph):
-        nodes = graph.nodes
+    def get_real_nodes(graph_solo):
+        nodes = graph_solo.nodes
         return nodes
+
+    def add_lvl(graph_full):
+        nodes_dict = {}
+        for node in get_copy_nodes(graph_full):
+            nodes_dict[node.id] = node
+        counter = 1
+        for node in graph_full.nodes:
+            if node.lvl != -1:
+                continue
+
+            counter = bfs(node, graph_full.edges, counter, nodes_dict)
 
     def add_positions(graph_full, d_graph):
         svg_io = BytesIO(d_graph.create_svg())
@@ -157,21 +168,10 @@ def convert_dot_to_json(dot_graph, lang):
             nodes += subgraph.nodes
             edges += subgraph.edges
 
-        response_graph = Graph(name, nodes, edges)
-
-        nodes_dict = {}
-        for node in get_copy_nodes(response_graph):
-            nodes_dict[node.id] = node
-        counter = 1
-        for node in nodes:
-            if node.lvl != -1:
-                continue
-
-            counter = bfs(node, edges, counter, nodes_dict)
-
-        return response_graph
+        return Graph(name, nodes, edges)
 
     gv_graph = dot_to_graph(dot_graph)
     graph = dot_graph_to_graph(gv_graph)
+    add_lvl(graph)
     add_positions(graph, gv_graph)
     return graph
