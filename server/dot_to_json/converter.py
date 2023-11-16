@@ -8,8 +8,8 @@ import queue
 
 
 class Node:
-    def __init__(self, id, label, shape):
-        self.id = id
+    def __init__(self, node_id, label, shape):
+        self.id = node_id
         self.label = label
         self.shape = shape
         self.lvl = -1
@@ -119,10 +119,10 @@ def convert_dot_to_json(dot_graph, lang):
 
     def add_positions(graph_full, d_graph):
         svg_io = BytesIO(d_graph.create_svg())
-        # d_graph.write_svg("./test.svg")
+        d_graph.write_svg("./test.svg")
         doc = minidom.parse(svg_io)
         nodes = get_real_nodes(graph_full)
-        node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
+        node_mapping = {dot_node.id.replace('\"', ''): dot_node for dot_node in nodes}
         for p in doc.getElementsByTagName("g"):
             if "node" == p.getAttribute('class').lower():
                 title = get_text_from_tag(p.getElementsByTagName('title')[0].childNodes)
@@ -170,8 +170,19 @@ def convert_dot_to_json(dot_graph, lang):
 
         return Graph(name, nodes, edges)
 
+    def filter_nodes_without_links(full_graph):
+        used_nodes_id = set()
+        for e in full_graph.edges:
+            used_nodes_id.add(e.source)
+            used_nodes_id.add(e.destination)
+        in_use_nodes = filter(lambda n: n.id in used_nodes_id, full_graph.nodes)
+        full_graph.nodes = list(in_use_nodes)
+
     gv_graph = dot_to_graph(dot_graph)
     graph = dot_graph_to_graph(gv_graph)
+
+    filter_nodes_without_links(graph)
     add_lvl(graph)
     add_positions(graph, gv_graph)
+
     return graph
