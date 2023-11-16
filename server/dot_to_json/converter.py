@@ -1,10 +1,11 @@
-from io import BytesIO
-from xml.dom import minidom
-from copy import copy
-
-import pydot
 import json
 import queue
+from copy import copy
+from io import BytesIO
+from typing import Any
+from xml.dom import minidom
+
+import pydot
 
 
 class Node:
@@ -27,7 +28,8 @@ class Node:
 
 
 class Edge:
-    def __init__(self, source, destination, style):
+    def __init__(self, edge_id, source, destination, style):
+        self.id = edge_id
         self.source = source
         self.destination = destination
         self.style = style
@@ -122,7 +124,7 @@ def convert_dot_to_json(dot_graph, lang):
         d_graph.write_svg("./test.svg")
         doc = minidom.parse(svg_io)
         nodes = get_real_nodes(graph_full)
-        node_mapping = {dot_node.id.replace('\"', ''): dot_node for dot_node in nodes}
+        node_mapping = {dot_node.id.replace('\"', ""): dot_node for dot_node in nodes}
         for p in doc.getElementsByTagName("g"):
             if "node" == p.getAttribute('class').lower():
                 title = get_text_from_tag(p.getElementsByTagName('title')[0].childNodes)
@@ -135,16 +137,30 @@ def convert_dot_to_json(dot_graph, lang):
 
         doc.unlink()
 
-    def dot_graph_to_graph(graph) -> Graph:
+    def dot_graph_to_graph(graph, cur_id=0) -> tuple[Graph, int | Any]:
         # nodes_with_edges = set()
         edges = []
         name = graph.get_name()
+        new_ids = dict()
+        my_id = cur_id
         for dot_edge in graph.get_edges():
+            # new_ids[dot_edge.get_source()] = cur_id
+            # dot_edge.set(source)
+            # source = cur_id
+            # cur_id += 1
+            #
+            # new_ids[dot_edge.get_destination()] = cur_id
+            # destination = cur_id
+            # cur_id += 1
+
+            edge_id = f'edge{my_id}'
+            my_id += 1
+
             source = get_node_name(dot_edge.get_source())
             destination = get_node_name(dot_edge.get_destination())
             style = dot_edge.get_attributes().get("style", EDGE_STYLE_DEFAULT_VALUE)
 
-            edge = Edge(source, destination, style)
+            edge = Edge(edge_id, source, destination, style)
             edges.append(edge)
 
             # nodes_with_edges.add(edge.source)
@@ -164,11 +180,11 @@ def convert_dot_to_json(dot_graph, lang):
             nodes.append(node)
 
         for dot_subgraph in graph.get_subgraphs():
-            subgraph = dot_graph_to_graph(dot_subgraph)
+            subgraph, my_id = dot_graph_to_graph(dot_subgraph, my_id)
             nodes += subgraph.nodes
             edges += subgraph.edges
 
-        return Graph(name, nodes, edges)
+        return Graph(name, nodes, edges), my_id
 
     def filter_nodes_without_links(full_graph):
         used_nodes_id = set()
@@ -179,7 +195,7 @@ def convert_dot_to_json(dot_graph, lang):
         full_graph.nodes = list(in_use_nodes)
 
     gv_graph = dot_to_graph(dot_graph)
-    graph = dot_graph_to_graph(gv_graph)
+    graph, _ = dot_graph_to_graph(gv_graph)
 
     filter_nodes_without_links(graph)
     add_lvl(graph)

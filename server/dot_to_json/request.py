@@ -17,6 +17,7 @@ class V2GetGraphRequest(BaseModel):
 
 
 class V2Edge(BaseModel):
+    id: str
     source: str
     target: str
     style: str
@@ -96,6 +97,6 @@ def map_shape(shape: str) -> NodeType:
 
 
 def map_edge(edge: Edge) -> V2Edge:
-    model = V2Edge(source=edge.source, target=edge.destination, style=edge.style)
+    model = V2Edge(id=edge.id, source=edge.source, target=edge.destination, style=edge.style)
 
     return model
