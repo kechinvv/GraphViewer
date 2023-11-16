@@ -1,0 +1,17 @@
+
+.rectangle-node {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    width: fit-content;
+    color: #333;
+   }
+   
+   .rectangle-node .handle {
+    width: 10px;
+    height: 10px;
+    background-color: #ccc;
+    border-radius: 50%;
+    cursor: move;
+   }

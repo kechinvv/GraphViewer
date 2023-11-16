@@ -1,0 +1,28 @@
+
+
+.rhombus-node {
+    display: block;
+    position: absolute;
+    transform: rotate(45deg);
+    background-color: white;
+    top: 10px;
+    right: auto;
+    border: 1px solid;
+    z-index: -1;
+  }
+
+.rhombus-content {
+    color: #333;
+    padding: 10px;
+}
+  .handles-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* background-image: url("https://img.icons8.com/color/48/000000/decision.png"); */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    width: fit-content;
+  }
