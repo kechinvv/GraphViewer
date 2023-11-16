@@ -6,6 +6,7 @@ from ..ast_view.ast import Ast, MyErrorListener
 
 from ..ModelBuilder import ModelBuilder
 
+
 class ASTModelBuilder(ModelBuilder):
     def build(self, code: str) -> str:
         inp_stream = InputStream(code)
