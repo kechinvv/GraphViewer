@@ -21,6 +21,7 @@ from apps.vk import AccountInfo
 from apps.session import backend, cookie, verifier
 from apps.models import Code
 from apps.db import get_db
+from fastapi.middleware.cors import CORSMiddleware
 
 from languages.model_builders import *
 
@@ -54,11 +55,23 @@ oauth.register(
         'redirect_url': 'http://localhost:8000/auth'
     }
 )
+# to solve corse problems during develompment
+# ideally should be conditionally applied using env variable
+origins = ["*"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/assets", StaticFiles(directory="../dist/assets"), name="static")
 
 @app.get("/")
-def root(request: Request):
-    return FileResponse('../client/views/index.html')
+async def root(request: Request):
+    return FileResponse('../dist/index.html')\
 
 
 @app.get("/login", tags=['User'])
