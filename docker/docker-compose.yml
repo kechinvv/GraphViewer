@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+
+  server-db:
+    image: postgres
+    container_name: server-db
+    environment:
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=USER
+      - POSTGRES_DB=modelviewer
+
+  server:
+    build:
+      dockerfile: server.Dockerfile
+    container_name: server
+    depends_on:
+      - server-db
+    environment:
+      - PYTHONUNBUFFERED=1
+      - db_conn=postgresql+psycopg2://USER:1234@server-db:5432/modelviewer'

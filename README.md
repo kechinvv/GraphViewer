@@ -3,29 +3,7 @@
 ##### Веб-приложение для отрисовки различных моделей представлений кода.
 ##### На вход подается фрагмент исходного кода, название языка и модель представления.
 ##### На выходе - дерево или граф
-```python
-a = 2
-b = 3
-if a > b:
-    a = a + b
-else:
-    a = a - b
-c = a + b
 
-```
-### python + control flow graph
-```mermaid
-graph TD;
-    A1[a = 2]-->A2;
-    A2[b = 3]-->A3;
-    A3{a > b}--yes-->B1;
-    A3--no-->C1;
-    B1[a = a + b];
-    C1[a = a - b];
-    D1[c = a + b];
-    B1-->D1;
-    C1-->D1;
-```
 ## Поддерживаемые языки и модели
 #### 1) python
 - ast
@@ -45,12 +23,12 @@ graph TD;
 - cfg
 #### 6) javascript
 - ast
-- cfg
-# Установка
-
+# Установка и запуск
+- [server](https://github.com/kechinvv/ModelViewer/blob/master/server/readme.md)
+- [client](https://github.com/kechinvv/ModelViewer/blob/master/graph-app/README.md)
 ## Требования
 - [Docker](https://www.docker.com/get-started/)
-- python3
+- python3.11
 - [graphviz](https://graphviz.org/)
-
-## Алгоритм запуска расположен в папке [server](./server/readme.md)
+- [bun](https://bun.sh/)
+- npm
