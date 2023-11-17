@@ -1,6 +1,6 @@
 from enum import auto
 from pydantic import BaseModel
-from converter_with_sub import Graph, Edge, Node
+from .converter_with_sub import Graph, Edge, Node
 from fastapi_utils.enums import CamelStrEnum
 
 

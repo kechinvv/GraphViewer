@@ -17,7 +17,7 @@ from dot_to_json.deprecated.converter_with_sub import convert_dot_to_json as con
 from dot_to_json.deprecated.request_with_sub import V1GetGraphRequest, map_to_v1response, V1GetGraphResponse
 from dot_to_json.converter import convert_dot_to_json
 from dot_to_json.request import V2GetGraphRequest, map_to_response, V2GetGraphResponse
-from apps.vk import AccountInfo
+from apps.schemas.AccountInfo import AccountInfo
 from apps.session import backend, cookie, verifier
 from apps.models import Code
 from apps.db import get_db

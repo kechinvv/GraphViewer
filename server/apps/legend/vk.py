@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-import requests
 import os
-import pydantic
 
-
-class AccountInfo(pydantic.BaseModel):
-    id: int
-    first_name: str
-    last_name: str
+import requests
+from ..schemas.AccountInfo import AccountInfo
 
 
 def get_access_token(code: str) -> str:
