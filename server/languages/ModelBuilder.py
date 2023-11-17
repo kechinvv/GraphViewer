@@ -7,12 +7,12 @@ class ModelBuilder:
 
 
 class Language(Enum):
-    C = "c"
+    C_CPP = "c_cpp"
     JAVA = "java"
     KOTLIN = "kotlin"
-    GO = "go"
+    GOLANG = "golang"
     PYTHON = "python"
-    JS = "js"
+    JAVASCRIPT = "javascript"
 
 
 class Model(Enum):

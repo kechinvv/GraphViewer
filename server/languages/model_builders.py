@@ -7,12 +7,12 @@ from .python.model_builders import model_builders as python_model_builders
 from .js.model_builders import model_builders as js_model_builders
 
 model_builders = {
-    Language.C: c_model_builders,
+    Language.C_CPP: c_model_builders,
     Language.JAVA: java_model_builders,
     Language.KOTLIN: kotlin_model_builders,
-    Language.GO: go_model_builders,
+    Language.GOLANG: go_model_builders,
     Language.PYTHON: python_model_builders,
-    Language.JS: js_model_builders
+    Language.JAVASCRIPT: js_model_builders
 }
 
 
