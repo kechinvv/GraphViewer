@@ -1,6 +1,6 @@
 from enum import auto
 from pydantic import BaseModel
-from server.dot_to_json.converter import Graph, Edge, Node
+from converter import Graph, Edge, Node
 from fastapi_utils.enums import CamelStrEnum
 
 
