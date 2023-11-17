@@ -4,6 +4,8 @@ All the commands listed in this file should be called in this folder.
 
 ### Install all dependencies
 ```sh
+npm i
+npm install lodash
 bun install
 ```
 
