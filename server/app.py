@@ -71,7 +71,7 @@ app.mount("/assets", StaticFiles(directory="../dist/assets"), name="static")
 
 @app.get("/")
 async def root(request: Request):
-    return FileResponse('../dist/index.html')\
+    return FileResponse('../dist/index.html')
 
 
 @app.get("/login", tags=['User'])
